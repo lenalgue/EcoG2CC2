@@ -4,29 +4,62 @@ output: github_document
 ---
 
 ```{bash}
-wget http://pagesperso.univ-brest.fr/~maignien/teaching/M1-MFA/UE-Ecogenomique2/EcoG2_data_cc2.tar.gz
-gunzip EcoG2_data_cc2.tar.gz
-tar xvf EcoG2_data_cc2.tar.gz
+#wget http://pagesperso.univ-brest.fr/~maignien/teaching/M1-MFA/UE-Ecogenomique2/EcoG2_data_cc2.tar.gz
+#gunzip EcoG2_data_cc2.tar.gz
+#tar xvf EcoG2_data_cc2.tar.gz
 ```
 ```{bash}
-mkdir data 
-cp St_Stratif_10sept14/* data
-cp St_Stratif_11mars14/* data
+#mkdir data 
+#cp St_Stratif_10sept14/* data
+#cp St_Stratif_11mars14/* data
 ```
 
 ```{r}
+library(rmarkdown)
+library(knitr)
+library(phyloseq)
+library(dada2)
+library(DECIPHER)
+library(phangorn)
+library(ggplot2)
+library(gridExtra)
+library(shiny)
+library(miniUI)
+library(caret)
+library(pls)
+library(e1071)
+library(ggplot2)
+library(randomForest)
+library("plyr"); packageVersion("plyr")
+library(dplyr)
+library(ggrepel)
+library(devtools)
+library(reshape2)
+library(PMA)
+library(ade4)
+library(ggnetwork)
+library(intergraph)
+library(scales)
+library(genefilter)
+library(impute)
+library(phyloseqGraphTest)
+library(Biostrings)
 library(dada2); packageVersion("dada2")
 ```
 ```{r}
 path <- "~/EcoG2CC2/data" 
 list.files(path)
 ```
+# Formation d'une liste pour les read forward (fnFs) et d'une liste pour les read reverse (fnRs):
 
 ```{r}
 fnFs <- sort(list.files(path, pattern="_R1.fastq", full.names = TRUE))
 fnRs <- sort(list.files(path, pattern="_R2.fastq", full.names = TRUE))
 sample.names <- sapply(strsplit(basename(fnFs), "_R"), `[`, 1)
 ```
+
+# Qualité des reads :
+
 
 ```{r}
 plotQualityProfile(fnFs[1:2])
@@ -36,12 +69,16 @@ plotQualityProfile(fnFs[1:2])
 plotQualityProfile(fnRs[1:2])
 ```
 
+
+Les reads forward sont de bonne qualité (Q score proche de 40) jusqu'à environ 240 pb tandis que les reads reverse le sont jusqu'à environ 190 pb. Par la suite, les reads F et R seront donc tronqués à 240pb et 190 respectivement afin de prendre en compte le moins d'erreurs possible.
+
 ```{r}
 filtFs <- file.path(path, "filtered", paste0(sample.names, "_F_filt.fastq.gz"))
 filtRs <- file.path(path, "filtered", paste0(sample.names, "_R_filt.fastq.gz"))
 names(filtFs) <- sample.names
 names(filtRs) <- sample.names
 ```
+
 
 Vérification de la présence de primer sur les séquences démultiplexées avec la commande "more" dans le terminal. Si chaque read débute par une séquence similaire alors les primers sont toujours présents sur la séquence. Ces derniers sont enlevés en ajoutant l'argument trimLeft dans la fonction filerAndTrim. Ici 18 nucléotides sont retirés des reads.
 
@@ -51,6 +88,8 @@ out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, trimLeft = c(18, 18), truncLen=
               compress=TRUE, multithread=TRUE) 
 head(out)
 ```
+# Taux d'erreur :
+
 ```{r}
 errF <- learnErrors(filtFs, multithread=TRUE)
 ```
@@ -62,6 +101,9 @@ errR <- learnErrors(filtRs, multithread=TRUE)
 plotErrors(errF, nominalQ=TRUE)
 ```
 
+Le taux d'erreur de séquançage estimé et le taux d'erreur observée semblent proches.  
+
+# Application de l'alogrithme aux reads filtrés et tronqués :
 ```{r}
 dadaFs <- dada(filtFs, err=errF, multithread=TRUE)
 ```
@@ -70,11 +112,14 @@ dadaFs <- dada(filtFs, err=errF, multithread=TRUE)
 dadaRs <- dada(filtRs, err=errR, multithread=TRUE)
 ```
 
+# Fusion des reads R et F correspondants :
+
 ```{r}
 mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=TRUE)
-# Inspect the merger data.frame from the first sample
 head(mergers[[1]])
 ```
+
+# Construction de la table des ASV :
 ```{r}
 seqtab <- makeSequenceTable(mergers)
 dim(seqtab)
@@ -82,7 +127,9 @@ dim(seqtab)
 ```{r}
 table(nchar(getSequences(seqtab)))
 ```
-1ere séquence longueur << 
+1ere séquence longueur << aux autres
+
+# Retrait séquences chimères :
 
 ```{r}
 seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
@@ -93,17 +140,18 @@ dim(seqtab.nochim)
 sum(seqtab.nochim)/sum(seqtab)
 ```
 
+# Vérification nombre de reads restants dans chaque échantillon :
+
 ```{r}
 getN <- function(x) sum(getUniques(x))
 track <- cbind(out, sapply(dadaFs, getN), sapply(dadaRs, getN), sapply(mergers, getN), rowSums(seqtab.nochim))
-# If processing a single sample, remove the sapply calls: e.g. replace sapply(dadaFs, getN) with getN(dadaFs)
 colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
 rownames(track) <- sample.names
 head(track)
 ```
 
 ```{bash}
-wget https://zenodo.org/record/4587955/files/silva_nr99_v138.1_train_set.fa.gz
+#wget https://zenodo.org/record/4587955/files/silva_nr99_v138.1_train_set.fa.gz
 ```
 
 ```{r}
@@ -112,7 +160,7 @@ taxa <- assignTaxonomy(seqtab.nochim, "silva_nr99_v138.1_train_set.fa.gz", multi
 ```
 
 ```{r}
-taxa.print <- taxa # Removing sequence rownames for display only
+taxa.print <- taxa 
 rownames(taxa.print) <- NULL
 head(taxa.print)
 ```
@@ -128,6 +176,7 @@ library(Biostrings); packageVersion("Biostrings")
 library(ggplot2); packageVersion("ggplot2")
 ```
 
+
 ```{r}
 theme_set(theme_bw())
 ```
@@ -135,9 +184,6 @@ theme_set(theme_bw())
 samples.out <- rownames(seqtab.nochim)
 prof <- sapply(strsplit(samples.out, "_"), `[`, 2)
 s_prof <- substr(prof,1,1)
-#fond <- substr(prof,1,1)
-#surface <- substr(prof,1,1)
-#median <- substr(prof,1,1)
 day <- as.character(sapply(strsplit(samples.out, "_"), `[`, 3))
 samdf <- data.frame(prof=s_prof, Day=day)
 #samdf$prof <- s_prof
@@ -160,19 +206,27 @@ taxa_names(ps) <- paste0("ASV", seq(ntaxa(ps)))
 ps
 ```
 
+# Quelle est la contribution de la profondeur et de la saison dans la structuration des communautés microbiennes planctoniques de la rade de Brest ?
+
 ```{r}
 plot_richness(ps, x="Saison", measures=c("Shannon", "Simpson"), color="prof")
 ```
 
-
+D'après l'analyse d'alpha-diversité via l'indice de Shannon et l'indice de Simpson, la diversité est moins importante en été qu'en hiver. Toutefois la diversité du fond en été est similaire à celle de l'hiver toute profondeur confondue.
 ```{r}
 ps.prop <- transform_sample_counts(ps, function(otu) otu/sum(otu))
 ord.nmds.bray <- ordinate(ps, method="NMDS", distance="bray")
 ```
 
+
 ```{r}
-plot_ordination(ps.prop, ord.nmds.bray, color="Saison", title="Bray NMDS")
+plot_ordination(ps.prop, ord.nmds.bray, color="Saison", shape="prof", title="Bray NMDS")
 ```
+
+D'après cette NMDS, plusieurs points sont confondus, certains échantillons auraient donc la même composition. Cette proposition semble fausse.
+Si l'on considère que cette NMDS est réellement représentative de la variation entre les échantillons, nous pourrions relever une forte différence entre les communautés présentes en hiver et celles présentes en été.
+Malgré de nombreux essais, je n'ai pas réussi à déterminer l'origine de cette erreur.
+
 ```{r}
 top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
 ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
@@ -187,9 +241,23 @@ ps.top20 <- prune_taxa(top20, ps.top20)
 plot_bar(ps.top20, x="Saison", fill="Family") + facet_wrap(~prof, scales="free_x")
 ```
 
+
 ```{r}
 top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
 ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
 ps.top20 <- prune_taxa(top20, ps.top20)
 plot_bar(ps.top20, x="Saison", fill="Genus") + facet_wrap(~prof, scales="free_x")
+```
+D'après ces profils d'abondance relatives par échantillons, l'abondance des micro-organismes est plus forte en été qu'en hiver, mais également plus forte au fond qu'à la surface (cela concorde avec le fait que la diversité soit plus grande au fond qu' à la surface). 
+L'abondance des cynaobactéries bien plus élevée à la suface et dans la partie médiane qu'au fond transcrit l'absence de lumière au fond. 
+Bien que la diversité soit plus forte en hiver, nous pouvons relever la présence de familles ou de genres présents en abondance en été qui ne sont pas présents en hiver. 
+
+Toutefois ce constat change lorsque l'on augmente le nombre de d'ASVs représentatives de 20 à 40 comme indiqué par le graphe ci-dessous.
+En effet, il semble qu'en hiver les communautés microbiennes soient composées de nombreux organismes différents présents en faible quantité.
+
+```{r}
+top40 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:40]
+ps.top40 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
+ps.top40 <- prune_taxa(top40, ps.top40)
+plot_bar(ps.top40, x="Saison", fill="Family") + facet_wrap(~prof, scales="free_x")
 ```
