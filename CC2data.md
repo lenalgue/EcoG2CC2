@@ -617,50 +617,44 @@ ord.nmds.bray <- ordinate(ps, method="NMDS", distance="bray")
     ## Square root transformation
     ## Wisconsin double standardization
     ## Run 0 stress 9.949611e-05 
-    ## Run 1 stress 9.84681e-05 
+    ## Run 1 stress 0.1372051 
+    ## Run 2 stress 9.75905e-05 
     ## ... New best solution
-    ## ... Procrustes: rmse 0.1524487  max resid 0.2870176 
-    ## Run 2 stress 9.930646e-05 
-    ## ... Procrustes: rmse 0.1599347  max resid 0.3104454 
-    ## Run 3 stress 9.770481e-05 
+    ## ... Procrustes: rmse 0.1501766  max resid 0.2595074 
+    ## Run 3 stress 0.3403702 
+    ## Run 4 stress 9.986286e-05 
+    ## ... Procrustes: rmse 0.01501242  max resid 0.03948635 
+    ## Run 5 stress 9.945835e-05 
+    ## ... Procrustes: rmse 0.07869374  max resid 0.2223075 
+    ## Run 6 stress 0.2250796 
+    ## Run 7 stress 0.001679746 
+    ## Run 8 stress 9.938188e-05 
+    ## ... Procrustes: rmse 0.09262984  max resid 0.2360357 
+    ## Run 9 stress 0.001697929 
+    ## Run 10 stress 0.001179433 
+    ## Run 11 stress 0.0006247811 
+    ## Run 12 stress 0.0004969945 
+    ## ... Procrustes: rmse 0.04607395  max resid 0.1180058 
+    ## Run 13 stress 0.0003044035 
+    ## ... Procrustes: rmse 0.02137719  max resid 0.05581912 
+    ## Run 14 stress 0.001071984 
+    ## Run 15 stress 9.934032e-05 
+    ## ... Procrustes: rmse 0.07596513  max resid 0.2180078 
+    ## Run 16 stress 9.816351e-05 
+    ## ... Procrustes: rmse 0.1454885  max resid 0.2738625 
+    ## Run 17 stress 9.709641e-05 
     ## ... New best solution
-    ## ... Procrustes: rmse 0.1107817  max resid 0.2765103 
-    ## Run 4 stress 0.2714574 
-    ## Run 5 stress 0.0007737906 
-    ## Run 6 stress 0.0009915324 
-    ## Run 7 stress 9.747423e-05 
-    ## ... New best solution
-    ## ... Procrustes: rmse 0.001102462  max resid 0.001723961 
-    ## ... Similar to previous best
-    ## Run 8 stress 0.001198064 
-    ## Run 9 stress 9.985239e-05 
-    ## ... Procrustes: rmse 0.03617722  max resid 0.05343335 
-    ## Run 10 stress 9.993159e-05 
-    ## ... Procrustes: rmse 0.09033557  max resid 0.1478213 
-    ## Run 11 stress 0.0004781607 
-    ## ... Procrustes: rmse 0.09652001  max resid 0.1533872 
-    ## Run 12 stress 0.000178886 
-    ## ... Procrustes: rmse 0.09596618  max resid 0.1556467 
-    ## Run 13 stress 9.769627e-05 
-    ## ... Procrustes: rmse 0.02439171  max resid 0.03666966 
-    ## Run 14 stress 9.715226e-05 
-    ## ... New best solution
-    ## ... Procrustes: rmse 0.104773  max resid 0.2406253 
-    ## Run 15 stress 0.0002210595 
-    ## ... Procrustes: rmse 0.0144501  max resid 0.03779117 
-    ## Run 16 stress 9.815944e-05 
-    ## ... Procrustes: rmse 0.1469061  max resid 0.2756057 
-    ## Run 17 stress 9.798216e-05 
-    ## ... Procrustes: rmse 0.1572776  max resid 0.2826713 
-    ## Run 18 stress 9.992814e-05 
-    ## ... Procrustes: rmse 0.1531781  max resid 0.2798712 
-    ## Run 19 stress 0.0008330792 
-    ## Run 20 stress 0.0001401809 
-    ## ... Procrustes: rmse 0.02322944  max resid 0.06136458 
+    ## ... Procrustes: rmse 0.02143649  max resid 0.05692009 
+    ## Run 18 stress 0.0003205263 
+    ## ... Procrustes: rmse 0.01043332  max resid 0.0276861 
+    ## Run 19 stress 9.722112e-05 
+    ## ... Procrustes: rmse 0.1097821  max resid 0.2000216 
+    ## Run 20 stress 0.235197 
     ## *** No convergence -- monoMDS stopping criteria:
     ##      8: no. of iterations >= maxit
-    ##     11: stress < smin
-    ##      1: stress ratio > sratmax
+    ##      8: stress < smin
+    ##      3: stress ratio > sratmax
+    ##      1: scale factor of the gradient < sfgrmin
 
     ## Warning in metaMDS(veganifyOTU(physeq), distance, ...): stress is (nearly) zero:
     ## you may have insufficient data
